@@ -11,6 +11,9 @@ This project is a full-stack application that demonstrates a file management sys
 ![rsz_screenshot_from_2024-02-08_18-45-38(](https://github.com/NiMusco/challenge-files/assets/12497746/3b1cf3bc-de82-44e4-9d60-4611219d9fb2)
 
 ---
+🚀 Postman collection [HERE](https://www.postman.com/clanbusters/workspace/public-nimusco/collection/15232284-4399317d-4848-49d6-858d-95c1bd51aeba?action=share&creator=15232284)
+
+---
 
 ## :electric_plug: Installation
 
