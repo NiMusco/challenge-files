@@ -1,4 +1,15 @@
-import { Controller, Get, Param, Post, Patch, Delete, Body, UseInterceptors, UploadedFile, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  UseInterceptors,
+  UploadedFile,
+  UseGuards,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { FilesService } from './files.service';
@@ -22,9 +33,8 @@ export class FilesController {
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body('name') name: string,
-    @User() user: UserEntity
+    @User() user: UserEntity,
   ) {
-
     if (!user.id) {
       throw new Error('User ID not found in the request');
     }
@@ -37,7 +47,7 @@ export class FilesController {
   async renameFile(
     @Param('id') fileId: number,
     @Body('name') newName: string,
-    @User() user: UserEntity
+    @User() user: UserEntity,
   ): Promise<any> {
     if (!user.id) {
       throw new Error('User ID not found in the request');
@@ -50,9 +60,8 @@ export class FilesController {
   @UseGuards(AuthGuard('jwt'))
   async deleteFile(
     @Param('id') fileId: number,
-    @User() user: UserEntity
+    @User() user: UserEntity,
   ): Promise<any> {
-    
     if (!user.id) {
       throw new Error('User ID not found in the request');
     }
@@ -69,9 +78,8 @@ export class FilesController {
   async shareFile(
     @Body('fileId') fileId: number,
     @Body('users') usernames: string[],
-    @User() user: UserEntity
+    @User() user: UserEntity,
   ): Promise<any> {
-
     if (!user.id) {
       throw new Error('User ID not found in the request');
     }
@@ -81,8 +89,11 @@ export class FilesController {
 
   @Get('share/:id')
   @UseGuards(AuthGuard('jwt'))
-  async getSharedUsers(@Param('id') fileId: number, @User() user: UserEntity): Promise<any> {
+  async getSharedUsers(
+    @Param('id') fileId: number,
+    @User() user: UserEntity,
+  ): Promise<any> {
     // Validate that the requesting user has access or ownership of the file if necessary
-    return this.filesService.getSharedUsersForFile(fileId, user.id);
+    return this.filesService.getSharedUsersForFile(fileId);
   }
 }

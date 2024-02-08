@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  CreateDateColumn,
+} from 'typeorm';
 import { User } from '../auth/user.entity';
 import { FileAccess } from '../files/fileAccess.entity';
 
@@ -19,12 +26,12 @@ export class File {
   @Column('bigint')
   size: number; // File size in bytes
 
-  @ManyToOne(() => User, user => user.files)
+  @ManyToOne(() => User, (user) => user.files)
   user: User;
 
   @CreateDateColumn()
   uploadDate: Date;
 
-  @OneToMany(() => FileAccess, fileAccess => fileAccess.file)
+  @OneToMany(() => FileAccess, (fileAccess) => fileAccess.file)
   accesses: FileAccess[];
 }

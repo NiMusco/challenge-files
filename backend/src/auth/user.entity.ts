@@ -15,6 +15,6 @@ export class User {
   password: string;
 
   // Define the one-to-many relationship
-  @OneToMany(() => File, file => file.user)
+  @OneToMany(() => File, (file) => file.user)
   files: File[];
 }
