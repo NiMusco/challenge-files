@@ -53,7 +53,7 @@ const modalStyle = {
   p: 4,
 };
 
-const Me: React.FC = () => {
+const Dashboard: React.FC = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -282,14 +282,16 @@ const Me: React.FC = () => {
         </Toolbar>
       </AppBar>
       
-      <Button
-        variant="contained"
-        sx={{ margin: 2 }}
-        onClick={handleOpenModal}
-        startIcon={<CloudUploadIcon />}
-      >
-        Upload File
-      </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Button
+          variant="contained"
+          sx={{ margin: 2 }}
+          onClick={handleOpenModal}
+          startIcon={<CloudUploadIcon />}
+        >
+          Upload File
+        </Button>
+      </Box>
       
        {/* Modal for file upload */}
        
@@ -443,4 +445,4 @@ const Me: React.FC = () => {
   );
 };
 
-export default Me;
+export default Dashboard;

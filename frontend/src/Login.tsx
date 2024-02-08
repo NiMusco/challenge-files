@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import api from './apiService';
 import { AxiosError } from 'axios';
 import { setUser } from './features/userSlice';
+import { Link } from 'react-router-dom';
 
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -98,6 +99,12 @@ const Login: React.FC = () => {
           >
             Sign In
           </Button>
+          <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+            {"Don't have an account? "}
+            <Link to="/register" style={{ textDecoration: 'none' }}>
+              Sign Up
+            </Link>
+          </Typography>
         </Box>
       </Box>
     </Container>
