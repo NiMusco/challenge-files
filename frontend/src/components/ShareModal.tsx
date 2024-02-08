@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Box,
   TextField,
   Button,
@@ -11,6 +14,8 @@ import {
   ListItemText,
   IconButton,
   Chip,
+  Link,
+  Divider,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import api from '../apiService';
@@ -22,18 +27,17 @@ interface ShareModalProps {
   open: boolean;
   onClose: () => void;
   file: IFile | null;
+  fetchFiles: () => void;
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, file }) => {
+const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, file, fetchFiles }) => {
   const [username, setUsername] = useState('');
   const [sharedUsers, setSharedUsers] = useState<string[]>([]);
 
   const handleShare = async () => {
     if (!file || !username.trim()) return;
     setSharedUsers([...sharedUsers, username]);
-    setUsername(''); // Clear the input field
-    // Mock success message
-    alert('User added to shared list!');
+    setUsername('');
   };
 
   useEffect(() => {
@@ -55,8 +59,6 @@ const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, file }) => {
   const handleRemoveUser = (index: number) => {
     const updatedSharedUsers = sharedUsers.filter((_, idx) => idx !== index);
     setSharedUsers(updatedSharedUsers);
-    // Mock removal message
-    alert('User removed from shared list!');
   };
 
   const handleSubmitSharedUsers = async () => {
@@ -68,8 +70,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, file }) => {
         users: sharedUsers,
       });
 
-      alert(JSON.stringify(response.data));
-      alert('Shared users submitted successfully!');
+      await fetchFiles();
       onClose();
     } catch (error) {
       console.error('Error submitting shared users:', error);
@@ -78,33 +79,23 @@ const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, file }) => {
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      aria-labelledby="share-file-modal-title"
-      aria-describedby="share-file-modal-description"
-    >
-      <Box sx={{
-        width: 400,
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        bgcolor: 'background.paper',
-        boxShadow: 24,
-        p: 4,
-      }}>
-        <Typography id="share-file-modal-title" variant="h6" component="h2">
-          Share <strong>{file?.name}</strong> with:
-        </Typography>
-
-        <List sx={{ width: '100%', bgcolor: 'background.paper', mt: 2 }}>
+    <Dialog open={open} onClose={onClose} aria-labelledby="share-file-modal-title">
+      <DialogTitle id="share-file-modal-title">
+        Share <strong>{file?.name}</strong>
+      </DialogTitle>
+      <DialogContent dividers sx={{ padding: 0 }}>
+        <List sx={{ width: '100%' }}>
           {sharedUsers.map((user, index) => (
             <ListItem
               key={index}
               secondaryAction={
                 user != file?.owner.username && (
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveUser(index)}>
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() => handleRemoveUser(index)}
+                    sx={{ mr: 0.2 }}
+                  >
                     <CloseIcon />
                   </IconButton>
                 )
@@ -112,52 +103,44 @@ const ShareModal: React.FC<ShareModalProps> = ({ open, onClose, file }) => {
             >
               <StringAvatar string={user} sx={{ mr: 1.5, width: 28, height: 28, fontSize: 16 }}></StringAvatar>
               <ListItemText primary={user} />
-              
-              {user === file?.owner.username && (
-                <Chip label="OWNER" color="primary" size="small" />
-              )}
+              {user === file?.owner.username && <Chip label="OWNER" color="primary" size="small" />}
             </ListItem>
           ))}
         </List>
-
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          name="username"
-          label="Add User by Username"
-          type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-
-        <Box
-          sx={{
-            mt: 2,
-            display: 'flex',
-            justifyContent: 'space-between', // This spreads the children across the main axis
-          }}
-        >
+        <Divider/>
+        <Box sx={{ padding: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            size="small"
+            name="username"
+            label="Add username"
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
           <Button
             variant="contained"
             onClick={handleShare}
             disabled={!username.trim()}
+            sx={{mt: 1, height: "40px"}}
           >
-            Add User
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleSubmitSharedUsers()}
-          >
-            Save
+            Add
           </Button>
         </Box>
 
-
-      </Box>
-    </Modal>
+      </DialogContent>
+      <DialogActions>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+          <Button onClick={onClose}>Discard</Button>
+          <Button onClick={handleSubmitSharedUsers}>
+            Save
+          </Button>
+        </Box>
+      </DialogActions>
+    </Dialog>
   );
 };
 

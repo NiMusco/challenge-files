@@ -37,6 +37,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 import ShareModal from './ShareModal';
+import RenameModal from './RenameModal';
 
 import './style.css';
 
@@ -162,14 +163,13 @@ const Me: React.FC = () => {
     }
   };
 
-  // +---------+
-  // | Actions |
-  // +---------+
+  // +----------+
+  // | Download |
+  // +----------+
 
   const downloadFile = (file: IFile) => {
     if (file) {
-      alert(JSON.stringify(file));
-      const s3 = "https://nimusco-files.s3.us-east-2.amazonaws.com/";
+      const s3 = process.env.REACT_APP_S3_BUCKET_URL;
       window.open(s3 + file.path, '_blank');
     }
     handleMenuClose();
@@ -193,13 +193,51 @@ const Me: React.FC = () => {
     setFileToShare(null);
   };
 
-  // Logout
+  // +--------+
+  // | Delete |
+  // +--------+
+  
+  const deleteFile = async (fileId: number) => {
+
+    // Confirmation dialog
+    const isConfirmed = window.confirm("Are you sure you want to delete this file?");
+    if (!isConfirmed) {
+      return; // Cancelled
+    }
+  
+    try {
+      const response = await api.delete(`/files/${fileId}`);
+      console.log(response.data);
+      await fetchFiles();
+    } catch (error) {
+      console.error('Failed to delete file:', error);
+    }
+  };
+
+  // +--------+
+  // | Rename |
+  // +--------+
+
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [currentFileToRename, setCurrentFileToRename] = useState<IFile | null>(null);
+
+  const handleOpenRenameModal = (file: IFile) => {
+    setCurrentFileToRename(file);
+    setIsRenameModalOpen(true);
+    handleMenuClose();
+  };
+  
+  // +--------+
+  // | Logout |
+  // +--------+
 
   const handleLogout = () => {
     dispatch(clearUser());
     localStorage.removeItem('token');
     navigate('/login');
   };
+
+  const isOwner = (fileOwnerUsername: string) => user && fileOwnerUsername === user.username;
 
   return (
     <div>
@@ -306,7 +344,15 @@ const Me: React.FC = () => {
       <ShareModal
         open={isShareModalOpen}
         onClose={handleCloseShareModal}
+        fetchFiles={fetchFiles}
         file={fileToShare}
+      />
+
+      <RenameModal
+        open={isRenameModalOpen}
+        onClose={() => setIsRenameModalOpen(false)}
+        file={currentFileToRename}
+        fetchFiles={fetchFiles}
       />
 
       <TableContainer component={Paper} sx={{ maxWidth: 800, margin: 'auto' }}>
@@ -329,7 +375,7 @@ const Me: React.FC = () => {
               <TableCell>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
                   <StringAvatar string={file.owner.username} sx={{ width: 24, height: 24, fontSize: 14, marginRight: 1 }}/>
-                  {file.owner.username === user?.username ? "You" : file.owner.username}
+                  {isOwner(file.owner.username) ? "You" : file.owner.username}
                 </Box>
               </TableCell>
               <TableCell align="right">{file.uploadDate}</TableCell>
@@ -338,7 +384,7 @@ const Me: React.FC = () => {
                   icon={<VisibilityIcon />}
                   label={file.total_shared || 0}
                   size="small"
-                  color={file.total_shared > 0 && file.owner.username == user?.username ? "primary" : "default"}
+                  color={file.total_shared > 0 && isOwner(file.owner.username) ? "primary" : "default"}
                 />
               </TableCell>
               <TableCell align="right">
@@ -365,13 +411,13 @@ const Me: React.FC = () => {
                         </ListItemIcon>
                         Share
                       </MenuItem>
-                      <MenuItem onClick={handleMenuClose} divider>
+                      <MenuItem onClick={() => handleOpenRenameModal(file)} divider>
                         <ListItemIcon>
                           <EditIcon fontSize="small" />
                         </ListItemIcon>
                         Rename
                       </MenuItem>
-                      <MenuItem onClick={handleMenuClose}>
+                      <MenuItem onClick={() => deleteFile(file.id)}>
                         <ListItemIcon>
                           <DeleteIcon fontSize="small" />
                         </ListItemIcon>

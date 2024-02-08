@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, UseInterceptors, UploadedFile, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Param, Post, Patch, Delete, Body, UseInterceptors, UploadedFile, UseGuards, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { FilesService } from './files.service';
@@ -24,11 +24,44 @@ export class FilesController {
     @Body('name') name: string,
     @User() user: UserEntity
   ) {
+
     if (!user.id) {
       throw new Error('User ID not found in the request');
     }
 
     return this.filesService.uploadFile(file, name, user.id);
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
+  async renameFile(
+    @Param('id') fileId: number,
+    @Body('name') newName: string,
+    @User() user: UserEntity
+  ): Promise<any> {
+    if (!user.id) {
+      throw new Error('User ID not found in the request');
+    }
+
+    return this.filesService.renameFile(fileId, newName, user.id);
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteFile(
+    @Param('id') fileId: number,
+    @User() user: UserEntity
+  ): Promise<any> {
+    
+    if (!user.id) {
+      throw new Error('User ID not found in the request');
+    }
+
+    try {
+      return await this.filesService.deleteFileOrRevokeAccess(fileId, user.id);
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 
   @Post('share')
@@ -38,6 +71,7 @@ export class FilesController {
     @Body('users') usernames: string[],
     @User() user: UserEntity
   ): Promise<any> {
+
     if (!user.id) {
       throw new Error('User ID not found in the request');
     }

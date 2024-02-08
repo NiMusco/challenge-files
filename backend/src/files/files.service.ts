@@ -159,7 +159,6 @@ export class FilesService {
 
   async getSharedUsersForFile(fileId: number, ownerId: number): Promise<any[]> {
     
-    // TODO: Check if the file belongs to the ownerId or if ownerId has permission to view shared users
     const accesses = await this.fileAccessRepository.find({
       where: { file: { id: fileId } },
       relations: ['user'],
@@ -169,5 +168,51 @@ export class FilesService {
     const sharedUsers = accesses.map(access => access.user.username);
 
     return sharedUsers;
+  }
+
+  async deleteFileOrRevokeAccess(fileId: number, userId: number): Promise<any> {
+    
+    const fileAccess = await this.fileAccessRepository.findOne({
+      where: { file: { id: fileId }, user: { id: userId } },
+      relations: ['file', 'user'],
+    });
+  
+    // Check if the file access exists
+    if (!fileAccess) {
+      throw new Error('File access not found.');
+    }
+
+    // Check if the current user is the owner of the file
+    if (fileAccess.user.id === userId) {
+      
+      // If the user is the owner, delete the file and all associated accesses
+      await this.fileAccessRepository.delete({ file: { id: fileId } });
+      await this.fileRepository.delete({ id: fileId });
+  
+      // Also delete the file from AWS S3...
+      await this.s3.deleteObject({
+        Bucket: this.configService.get('AWS_BUCKET_NAME'),
+        Key: fileAccess.file.path,
+      }).promise();
+  
+      return { message: 'File and all accesses deleted successfully.' };
+    } else {
+      // If the user is not the owner, just remove their access
+      await this.fileAccessRepository.delete({ file: { id: fileId }, user: { id: userId } });
+      return { message: 'Access revoked successfully.' };
+    }
+  }
+  
+  async renameFile(fileId: number, newName: string, userId: number): Promise<any> {
+    const file = await this.fileRepository.findOne({ where: { id: fileId, user: { id: userId } } });
+  
+    if (!file) {
+      throw new Error('File not found or user does not have permission to rename this file.');
+    }
+  
+    file.name = newName;
+    await this.fileRepository.save(file);
+  
+    return { message: 'File renamed successfully' };
   }
 }
